@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nani - An AI Assistant</title>
+    <style>
+        .title-nani {
+            color:#d1ffd6;
+            font-weight: bold;
+        }
+
+        .title-ai {
+            color: #cfe7ff;
+            font-weight: bold;
+        }
+
+        .title-dash {
+            color: white;
+        }
+
+        body {
+            background: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #chatbox {
+            background: #2b2b2b;
+            height: 400px;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        #inputBox {
+            width: 75%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background: #333333;
+            color: white;
+            resize: none;
+            overflow-y: auto;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            box-sizing: border-box;
+            max-height: 150px;
+        }
+        #sendBtn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            vertical-align: top;
+            margin-left: 8px;
+        }
+        #sendBtn:hover {
+            background: #45a049;
+        }
+        .msg-you { color: #d1ffd6; }
+        .msg-nani { color: #cfe7ff; }
+        .row { display:flex; align-items:flex-start; gap:8px; }
+        @media (max-width:600px) {
+            #inputBox { width: 68%; }
+        }
+    </style>
+</head>
+<body>
+
+<h2>
+    <span class="title-nani">Nani</span>
+    <span class="title-dash"> - </span>
+    <span class="title-ai">The AI</span>
+</h2>
+
+
+<div id="chatbox"></div>
+
+<div class="row">
+    <textarea id="inputBox" placeholder="Type your message..." rows="1"></textarea>
+    <button id="sendBtn">Send</button>
+</div>
+
+<script>
+const inputBox = document.getElementById("inputBox");
+const sendBtn = document.getElementById("sendBtn");
+const chatbox = document.getElementById("chatbox");
+
+// Auto-resize textarea
+function autoResize(el) {
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight) + "px";
+}
+inputBox.addEventListener("input", () => autoResize(inputBox));
+window.addEventListener("load", () => autoResize(inputBox));
+
+// ENTER = send, SHIFT+ENTER = newline
+inputBox.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        if (event.shiftKey) {
+            // allow newline
+            return;
+        } else {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+});
+
+// Send button click
+sendBtn.addEventListener("click", sendMessage);
+
+function appendMessage(who, text) {
+    // simple safe rendering of newlines -> <br>
+    const safeHtml = text.replace(/&/g, "&amp;")
+                         .replace(/</g, "&lt;")
+                         .replace(/>/g, "&gt;")
+                         .replace(/\n/g, "<br>");
+    if (who === "you") {
+        chatbox.innerHTML += '<div class="msg-you"><b>You:</b> ' + safeHtml + '<br><br></div>';
+    } else {
+        chatbox.innerHTML += '<div class="msg-nani"><b>Nani:</b> ' + safeHtml + '<br><br></div>';
+    }
+    chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+function sendMessage() {
+    let msg = inputBox.value;
+    if (!msg || msg.trim() === "") return;
+
+    appendMessage("you", msg);
+    inputBox.value = "";
+    autoResize(inputBox);
+
+    fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "message=" + encodeURIComponent(msg)
+    })
+    .then(res => res.json())
+    .then(data => {
+        let reply = (data && data.reply) ? data.reply : "No response.";
+        appendMessage("nani", reply);
+    })
+    .catch(err => {
+        appendMessage("nani", "Error: " + String(err));
+        console.error(err);
+    });
+}
+</script>
+
+</body>
+</html>
