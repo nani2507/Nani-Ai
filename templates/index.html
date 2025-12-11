@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Nani - An AI Assistant</title>
+
     <style>
         .title-nani {
             color:#d1ffd6;
@@ -25,18 +27,27 @@
             margin: 0;
             padding: 20px;
         }
+
         #chatbox {
             background: #2b2b2b;
-            height: 400px;
+            height: 60vh;          /* responsive height */
             padding: 15px;
             border-radius: 10px;
             overflow-y: auto;
             margin-bottom: 15px;
             line-height: 1.5;
         }
+
+        /* Wrap input + send button */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
         #inputBox {
-            width: 75%;
-            padding: 10px;
+            flex: 1;
+            padding: 12px;
             border-radius: 5px;
             border: none;
             background: #333333;
@@ -48,25 +59,42 @@
             box-sizing: border-box;
             max-height: 150px;
         }
+
         #sendBtn {
-            padding: 10px 20px;
+            padding: 12px 20px;
             border: none;
             border-radius: 5px;
             background: #4CAF50;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            vertical-align: top;
-            margin-left: 8px;
         }
+
         #sendBtn:hover {
             background: #45a049;
         }
+
         .msg-you { color: #d1ffd6; }
         .msg-nani { color: #cfe7ff; }
-        .row { display:flex; align-items:flex-start; gap:8px; }
-        @media (max-width:600px) {
-            #inputBox { width: 68%; }
+
+        /* MOBILE RESPONSIVE FIX */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            #chatbox {
+                height: 65vh;
+            }
+
+            .input-area {
+                flex-direction: column;
+            }
+
+            #sendBtn {
+                width: 100%;
+                padding: 14px;
+            }
         }
     </style>
 </head>
@@ -78,10 +106,10 @@
     <span class="title-ai">The AI</span>
 </h2>
 
-
 <div id="chatbox"></div>
 
-<div class="row">
+<!-- NEW RESPONSIVE INPUT BOX -->
+<div class="input-area">
     <textarea id="inputBox" placeholder="Type your message..." rows="1"></textarea>
     <button id="sendBtn">Send</button>
 </div>
@@ -102,30 +130,26 @@ window.addEventListener("load", () => autoResize(inputBox));
 // ENTER = send, SHIFT+ENTER = newline
 inputBox.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
-        if (event.shiftKey) {
-            // allow newline
-            return;
-        } else {
-            event.preventDefault();
-            sendMessage();
-        }
+        if (event.shiftKey) return;
+        event.preventDefault();
+        sendMessage();
     }
 });
 
-// Send button click
 sendBtn.addEventListener("click", sendMessage);
 
 function appendMessage(who, text) {
-    // simple safe rendering of newlines -> <br>
     const safeHtml = text.replace(/&/g, "&amp;")
                          .replace(/</g, "&lt;")
                          .replace(/>/g, "&gt;")
                          .replace(/\n/g, "<br>");
+
     if (who === "you") {
-        chatbox.innerHTML += '<div class="msg-you"><b>You:</b> ' + safeHtml + '<br><br></div>';
+        chatbox.innerHTML += `<div class="msg-you"><b>You:</b> ${safeHtml}<br><br></div>`;
     } else {
-        chatbox.innerHTML += '<div class="msg-nani"><b>Nani:</b> ' + safeHtml + '<br><br></div>';
+        chatbox.innerHTML += `<div class="msg-nani"><b>Nani:</b> ${safeHtml}<br><br></div>`;
     }
+
     chatbox.scrollTop = chatbox.scrollHeight;
 }
 
